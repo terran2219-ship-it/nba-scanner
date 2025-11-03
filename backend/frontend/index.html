@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBA Stats Scanner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h1 {
+      background: #1d428a;
+      color: white;
+      padding: 15px;
+      margin: 0;
+    }
+    #stats {
+      padding: 20px;
+    }
+    .player {
+      background: white;
+      border-radius: 8px;
+      margin: 10px auto;
+      padding: 10px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .player h2 {
+      margin: 5px 0;
+      color: #1d428a;
+    }
+  </style>
+</head>
+<body>
+  <h1>NBA Stats Scanner</h1>
+  <div id="stats">Loading player lines...</div>
+
+  <script>
+    // 🔹 Change this to your Render backend link later
+    const API_URL = "https://nba-scanner.onrender.com/api/lines";
+
+    async function loadStats() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+
+        const statsDiv = document.getElementById("stats");
+        statsDiv.innerHTML = "";
+
+        if (!Array.isArray(data) || data.length === 0) {
+          statsDiv.innerHTML = "<p>No data available right now.</p>";
+          return;
+        }
+
+        data.forEach(game => {
+          if (!game.bookmakers || game.bookmakers.length === 0) return;
+          const bookmaker = game.bookmakers[0];
+          bookmaker.markets.forEach(market => {
+            market.outcomes.forEach(outcome => {
+              const div = document.createElement("div");
+              div.className = "player";
+              div.innerHTML = `
+                <h2>${outcome.name}</h2>
+                <p><b>Type:</b> ${market.key}</p>
+                <p><b>Line:</b> ${outcome.point || 'N/A'}</p>
+                <p><b>Odds:</b> ${outcome.price || 'N/A'}</p>
+              `;
+              statsDiv.appendChild(div);
+            });
+          });
+        });
+      } catch (error) {
+        document.getElementById("stats").innerHTML = "<p>Failed to load data.</p>";
+        console.error(error);
+      }
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>
